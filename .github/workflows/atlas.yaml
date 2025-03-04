@@ -27,6 +27,8 @@ jobs:
         with:
           dir-name: 'neon-locks'
           env: "neon"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       # Step 3: Create a new branch using the Neon official action
       - name: Create Neon Branch

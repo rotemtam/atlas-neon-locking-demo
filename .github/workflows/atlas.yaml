@@ -43,10 +43,13 @@ jobs:
       # Step 4: Try to apply migrations against the Neon branch URL
       - name: Apply Migrations
         continue-on-error: true
-        run: atlas migrate apply --url="${{ steps.create-branch.outputs.db_url }}" --dir "file://migrations"
+        run: atlas migrate apply --url="${{ steps.create-branch.outputs.db_url }}&search_path=public" --dir "file://migrations"
 
-      # Cleanup step to delete the branch
-      - name: Delete Neon Branch
-        run: |
-          curl -X DELETE "https://console.neon.tech/api/v2/projects/${{ secrets.PROJECT_ID }}/branches/${{ steps.create-branch.outputs.branch_id }}" \
-          -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}"
+    delete-neon-branch:
+      steps:
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch_name: pr-${{ github.event.number }}
+

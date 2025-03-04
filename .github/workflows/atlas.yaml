@@ -44,12 +44,8 @@ jobs:
       - name: Apply Migrations
         continue-on-error: true
         run: atlas migrate apply --url="${{ steps.create-branch.outputs.db_url }}&search_path=public" --dir "file://migrations"
-
-    delete-neon-branch:
-      steps:
-        uses: neondatabase/delete-branch-action@v3
+      - uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
           branch_name: pr-${{ github.event.number }}
-

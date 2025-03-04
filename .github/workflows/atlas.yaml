@@ -25,9 +25,8 @@ jobs:
       # Step 2: Lint the migrations
       - uses: ariga/atlas-action/migrate/lint@v1
         with:
-          dir: 'file://migrations'
           dir-name: 'neon-locks'
-          dev-url: "docker://postgres:17/dev?search_path=public"
+          env: "neon"
 
       # Step 3: Create a new branch using the Neon official action
       - name: Create Neon Branch

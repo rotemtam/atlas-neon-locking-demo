@@ -1,0 +1,52 @@
+name: Atlas CI
+
+on:
+  pull_request:
+    paths:
+      - 'migrations/*' # Run only if changes occur in the migrations directory
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  atlas-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Step 1: Setup Atlas
+      - uses: ariga/setup-atlas@v0
+        with:
+          cloud-token: ${{ secrets.ATLAS_TOKEN }}
+
+      # Step 2: Lint the migrations
+      - uses: ariga/atlas-action/migrate/lint@v1
+        with:
+          dir: 'file://migrations'
+          dir-name: 'neon-locks'
+          dev-url: "docker://postgres:17/dev?search_path=public"
+
+      # Step 3: Create a new branch using the Neon official action
+      - name: Create Neon Branch
+        id: create_neon_branch
+        uses: neondatabase/create-branch-action@v4
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch_name: pr-${{ github.event.number }}
+          username: pruser
+
+      # Step 4: Try to apply migrations against the Neon branch URL
+      - name: Apply Migrations
+        continue-on-error: true
+        run: atlas migrate apply --url="${{ steps.create_neon_branch.outputs.database_url }}" --dir "file://migrations"
+
+      # Step 5: Cleanup Neon Branch
+      - name: Delete Neon Branch
+        if: always()
+        run: |
+          curl -X DELETE "https://console.neon.tech/api/v1/projects/${{ secrets.NEON_PROJECT_ID }}/branches/pr-${{ github.event.number }}" \
+          -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}"

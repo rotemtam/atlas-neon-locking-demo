@@ -38,7 +38,7 @@ jobs:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
           branch_name: pr-${{ github.event.number }}
-          username: pruser
+          username: neondb_owner
 
       # Step 4: Try to apply migrations against the Neon branch URL
       - name: Apply Migrations

@@ -40,12 +40,26 @@ jobs:
           branch_name: pr-${{ github.event.number }}
           username: neondb_owner
 
-      # Step 4: Try to apply migrations against the Neon branch URL
+      # Step 4: Try to apply migrations against the Neon branch URL and capture result
       - name: Apply Migrations
+        id: apply-migrations
         continue-on-error: true
-        run: atlas migrate apply --env neon --url="${{ steps.create-branch.outputs.db_url }}&search_path=public" --dir "file://migrations"
-      - uses: neondatabase/delete-branch-action@v3
+        run: |
+          atlas migrate apply --env neon --url="${{ steps.create-branch.outputs.db_url }}&search_path=public" --dir "file://migrations"
+          echo "status=$?" >> $GITHUB_OUTPUT
+        
+      # Step 5: Always clean up the Neon branch
+      - name: Clean up Neon Branch
+        if: always()  # This ensures this step always runs
+        uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
           branch: pr-${{ github.event.number }}
+          
+      # Step 6: Fail workflow if migrations failed
+      - name: Check Migration Status
+        if: steps.apply-migrations.outputs.status != '0'
+        run: |
+          echo "Migration failed with status code ${{ steps.apply-migrations.outputs.status }}"
+          exit 1

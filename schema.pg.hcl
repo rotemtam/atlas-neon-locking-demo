@@ -36,7 +36,7 @@ table "gigantic_user_table" {
   primary_key  {
     columns = [column.id]
   }
-  // unique "email" {
-  //   columns = [column.email]
-  // }
+  unique "email" {
+    columns = [column.email]
+  }
 }

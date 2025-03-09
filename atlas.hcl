@@ -9,10 +9,10 @@ env "neon" {
   }
 }
 
-# hook "sql" "timeout" {
-#   transaction {
-#     after_begin = [
-#       "SET statement_timeout TO '50ms'",
-#     ]
-#   }
-# }
+hook "sql" "timeout" {
+  transaction {
+    after_begin = [
+      "SET statement_timeout TO '10s'",
+    ]
+  }
+}
